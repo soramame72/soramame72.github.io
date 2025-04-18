@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ストレージ</title>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- ログイン / 新規登録 画面 -->
+    <div id="authPage">
+        <h1>ログイン / 新規登録</h1>
+        <input type="text" id="username" placeholder="ユーザー名">
+        <input type="password" id="password" placeholder="パスワード">
+        <button id="registerBtn">新規登録</button>
+        <button id="loginBtn">ログイン</button>
+        <p id="authStatus"></p>
+    </div>
+
+    <!-- ファイルアップロード画面 -->
+    <div id="uploadPage" class="hidden">
+        <h1>ファイルアップローダー</h1>
+        
+        <!-- ログアウトボタン -->
+        <button id="logoutBtn">ログアウト</button>
+
+        <h2>アップロード</h2>
+        <input type="file" id="fileInput">
+        <button id="uploadBtn">アップロード開始</button>
+        <p id="status"></p>
+
+        <h2>アップロード済みファイル</h2>
+        <ul id="fileList"></ul>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase 設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwJKhjvzTOPqPOavrrpInIV1epb4W2Eoo",
+            authDomain: "soramame72-storage.firebaseapp.com",
+            projectId: "soramame72-storage",
+            storageBucket: "soramame72-storage.appspot.com",
+            messagingSenderId: "176925134959",
+            appId: "1:176925134959:web:505c741b0c67b0e49d3d9a"
+        };
+
+        // Firebase 初期化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+
+        // 要素取得
+        const authPage = document.getElementById("authPage");
+        const uploadPage = document.getElementById("uploadPage");
+        const authStatus = document.getElementById("authStatus");
+        const fileList = document.getElementById("fileList");
+        const status = document.getElementById("status");
+
+        // 新規登録ボタン
+        document.getElementById("registerBtn").addEventListener("click", async () => {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, username + "@example.com", password);
+                await setDoc(doc(db, "users", userCredential.user.uid), { username, files: [] });
+                authStatus.innerText = "登録完了！ログインしてください。";
+            } catch (error) {
+                authStatus.innerText = "エラー: " + error.message;
+            }
+        });
+
+        // ログインボタン
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, username + "@example.com", password);
+                authStatus.innerText = "ログイン成功！";
+            } catch (error) {
+                authStatus.innerText = "エラー: " + error.message;
+            }
+        });
+
+        // ログアウトボタン
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                // ログアウト後にログインページに戻す
+                alert("ログアウトしました");
+            } catch (error) {
+                alert("ログアウト中にエラーが発生しました: " + error.message);
+            }
+        });
+
+        // ファイルアップロードボタン
+        document.getElementById("uploadBtn").addEventListener("click", async () => {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("ファイルを選択してください。");
+                return;
+            }
+
+            document.getElementById("status").innerText = "アップロード中...";
+
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    // ログインしていない場合はログインページを表示
+                    alert("ログインしてください。");
+                    document.getElementById("authPage").classList.remove("hidden");
+                    document.getElementById("uploadPage").classList.add("hidden");
+                    return;
+                }
+
+                // GoFileにファイルをアップロード
+                const formData = new FormData();
+                formData.append("file", file);
+
+                // サーバーURLを取得
+                const serverRes = await fetch("https://api.gofile.io/getServer");
+                const { data } = await serverRes.json();
+                
+                // 取得したサーバーURL
+                const uploadUrl = `https://${data.server}.gofile.io/uploadFile`;
+
+                console.log("アップロード先URL:", uploadUrl); // URL確認
+
+                const goFileResponse = await fetch(uploadUrl, {
+                    method: "POST", 
+                    body: formData
+                });
+
+                const result = await goFileResponse.json();
+
+                if (result.status === "ok") {
+                    const fileUrl = result.data.downloadPage;
+
+                    // FirestoreにファイルのURLを保存
+                    await updateDoc(doc(db, "users", user.uid), {
+                        files: arrayUnion(fileUrl)
+                    });
+
+                    // アップロード済みファイルリストを更新
+                    loadUserFiles(user.uid);
+
+                    alert(`アップロード完了！\nダウンロードリンク: ${fileUrl}`);
+                } else {
+                    // 詳細なエラーメッセージ表示
+                    console.error("GoFileエラー:", result);
+                    alert("アップロード失敗: " + (result.error || "不明なエラー"));
+                }
+            } catch (error) {
+                console.error("エラー発生:", error);
+                alert("エラーが発生しました: " + error.message);
+            }
+        });
+
+        // ユーザーのファイルをFirestoreからロード
+        async function loadUserFiles(userId) {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+                const files = userDoc.data().files;
+                fileList.innerHTML = "";
+                files.forEach(file => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `<a href="${file}" target="_blank">${file}</a>`;
+                    fileList.appendChild(li);
+                });
+            }
+        }
+
+        // 認証状態の監視
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authPage.classList.add("hidden");
+                uploadPage.classList.remove("hidden");
+                loadUserFiles(user.uid);
+            } else {
+                authPage.classList.remove("hidden");
+                uploadPage.classList.add("hidden");
+            }
+        });
+    </script>
+</body>
+</html>
