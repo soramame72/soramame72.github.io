@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>マルチファイル変換ツール</title>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+  <script src="https://unpkg.com/fflate@0.7.4/umd/index.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, select, button { margin: 10px 0; display: block; }
+    progress { width: 100%; height: 20px; }
+    #statusText { margin-top: 10px; }
+    #downloadLink { margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+
+<h1>マルチファイル変換ツール</h1>
+
+<input type="file" id="fileInput">
+<select id="categorySelect">
+  <option value="compression">圧縮ファイル</option>
+  <option value="image">画像ファイル</option>
+  <option value="video">ビデオファイル</option>
+  <option value="audio">オーディオファイル</option>
+</select>
+
+<select id="formatSelect"></select>
+
+<button id="convertBtn">変換開始</button>
+
+<progress id="progressBar" value="0" max="100"></progress>
+<p id="statusText"></p>
+<a id="downloadLink" download>変換されたファイルをダウンロード</a>
+
+<script>
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+
+const fileInput = document.getElementById('fileInput');
+const categorySelect = document.getElementById('categorySelect');
+const formatSelect = document.getElementById('formatSelect');
+const convertBtn = document.getElementById('convertBtn');
+const progressBar = document.getElementById('progressBar');
+const statusText = document.getElementById('statusText');
+const downloadLink = document.getElementById('downloadLink');
+
+const formats = {
+  compression: ["zip", "7z", "rar", "lzh", "cab"],
+  image: ["bmp", "gif", "ico", "jpeg", "jpg", "png", "psd", "svg", "tiff", "webp"],
+  video: ["3gp", "avi", "flv", "mov", "mp4", "ogv", "webm", "wmv"],
+  audio: ["acc", "aiff", "alac", "amr", "flac", "m4a", "mp3", "ogg", "wav", "wma"]
+};
+
+function updateFormatOptions() {
+  const category = categorySelect.value;
+  formatSelect.innerHTML = '';
+  formats[category].forEach(ext => {
+    const option = document.createElement('option');
+    option.value = ext;
+    option.textContent = ext.toUpperCase();
+    formatSelect.appendChild(option);
+  });
+}
+
+categorySelect.addEventListener('change', updateFormatOptions);
+updateFormatOptions();
+
+convertBtn.addEventListener('click', async () => {
+  const file = fileInput.files[0];
+  const category = categorySelect.value;
+  const targetFormat = formatSelect.value;
+  
+  if (!file) {
+    alert('ファイルを選択してください');
+    return;
+  }
+  
+  // サイズ警告
+  if (file.size > 1024 * 1024 * 1024) {
+    const proceed = confirm("ファイルサイズが1GBを超えています。変換を続行しますか？");
+    if (!proceed) return;
+  }
+  
+  const fileName = file.name.split('.').slice(0, -1).join('.');
+  const inputExt = file.name.split('.').pop().toLowerCase();
+
+  statusText.textContent = '変換準備中...';
+  progressBar.value = 0;
+
+  try {
+    if (category === 'compression') {
+      await handleCompression(file, fileName, targetFormat);
+    } else {
+      await handleMedia(file, fileName, targetFormat);
+    }
+  } catch (err) {
+    console.error(err);
+    statusText.textContent = 'エラー発生: ' + err.message;
+  }
+});
+
+async function handleCompression(file, fileName, targetFormat) {
+  statusText.textContent = '圧縮ファイルを変換中...';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const uint8arr = new Uint8Array(e.target.result);
+    
+    if (targetFormat === 'zip') {
+      const zipped = fflate.zipSync({ "converted_file": uint8arr });
+      finalizeConversion(new Blob([zipped], { type: 'application/zip' }), fileName + ".zip");
+    } else {
+      alert('現在、圧縮ファイルはZIP形式のみ対応しています（今後拡張可能）');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function handleMedia(file, fileName, targetFormat) {
+  if (!ffmpeg.isLoaded()) {
+    statusText.textContent = 'FFmpegライブラリを読み込み中...';
+    await ffmpeg.load();
+  }
+
+  statusText.textContent = 'ファイル変換中...';
+  ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+  
+  const outputFileName = `${fileName}.${targetFormat}`;
+
+  await ffmpeg.run('-i', file.name, outputFileName);
+
+  const data = ffmpeg.FS('readFile', outputFileName);
+
+  const blob = new Blob([data.buffer], { type: 'application/octet-stream' });
+  finalizeConversion(blob, outputFileName);
+}
+
+function finalizeConversion(blob, outputName) {
+  const url = URL.createObjectURL(blob);
+  downloadLink.href = url;
+  downloadLink.download = outputName;
+  downloadLink.style.display = 'block';
+  statusText.textContent = '変換完了！ファイルをダウンロードできます。';
+  progressBar.value = 100;
+}
+</script>
+
+</body>
+</html>
