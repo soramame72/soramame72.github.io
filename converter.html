@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>マルチファイル変換ツール</title>
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+  <title>ファイル変換ツール</title>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.4/dist/ffmpeg.min.js"></script>
   <script src="https://unpkg.com/fflate@0.7.4/umd/index.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
@@ -15,7 +15,7 @@
 </head>
 <body>
 
-<h1>マルチファイル変換ツール</h1>
+<h1>ファイル変換ツール</h1>
 
 <input type="file" id="fileInput">
 <select id="categorySelect">
@@ -35,7 +35,10 @@
 
 <script>
 const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: true });
+const ffmpeg = createFFmpeg({ 
+    corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js", 
+    log: true 
+});
 
 const fileInput = document.getElementById('fileInput');
 const categorySelect = document.getElementById('categorySelect');
@@ -123,6 +126,10 @@ async function handleMedia(file, fileName, targetFormat) {
   }
 
   statusText.textContent = 'ファイル変換中...';
+  ffmpeg.setProgress(({ ratio }) => {
+    progressBar.value = Math.round(ratio * 100);
+  });
+
   ffmpeg.FS('writeFile', file.name, await fetchFile(file));
   
   const outputFileName = `${fileName}.${targetFormat}`;
