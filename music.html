@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>音楽プレーヤー</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, sans-serif;
+      background: linear-gradient(to bottom, #dfe3ee, #aeb9cc);
+      text-align: center;
+      padding: 30px;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    select {
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #888;
+      background: linear-gradient(to bottom, #fff, #d0d0d0);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 10px 25px;
+      margin: 10px 5px;
+      border: 1px solid #888;
+      border-radius: 10px;
+      color: #333;
+      background: linear-gradient(to bottom, #ffffff, #b0b0b0);
+      text-shadow: 0 1px 0 #fff;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+
+    button:active {
+      background: linear-gradient(to bottom, #b0b0b0, #ffffff);
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 12px;
+      background-color: #e0e0e0;
+    }
+
+    .credit {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+      text-shadow: 0 1px 0 #fff;
+    }
+
+    .credit a {
+      color: #336699;
+      text-decoration: none;
+    }
+
+    .credit a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>音楽プレーヤーver1.0</h1>
+
+  <select id="trackSelect">
+    <option value="music1.mp3">music1.mp3</option>
+    <option value="music2.mp3">music2.mp3</option>
+    <option value="music3.mp3">music3.mp3</option>
+    <option value="music4.mp3">music4.mp3</option>
+    <option value="music5.mp3">music5.mp3</option>
+    <option value="music6.mp3">music6.mp3</option>
+    <option value="music7.mp3">music7.mp3</option>
+  </select>
+
+  <br>
+
+  <button onclick="playMusic()">再生</button>
+  <button onclick="pauseMusic()">停止</button>
+
+  <audio id="audioPlayer" controls>
+    <source src="music1.mp3" type="audio/mpeg">
+    お使いのブラウザは audio タグに対応していません。
+  </audio>
+
+  <div class="credit">
+    音楽: <a href="http://ajapabgm.html.xdomain.jp/" target="_blank">ajapaのBGM</a>
+  </div>
+
+  <script>
+    const player = document.getElementById('audioPlayer');
+    const select = document.getElementById('trackSelect');
+
+    function playMusic() {
+      player.src = select.value;
+      player.play();
+    }
+
+    function pauseMusic() {
+      player.pause();
+    }
+  </script>
+</body>
+</html>
