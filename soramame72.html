@@ -1,136 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>soramame72</title>
-  <link rel="icon" href="favicon.PNG" type="image/png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background: url('background.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-      animation: fadein 1.5s ease;
-    }
-
-    @keyframes fadein {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    h1 {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 28px;
-      text-shadow: 0 2px 2px #000;
-    }
-
-    .container {
+      height: 100vh;
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       justify-content: center;
-      padding: 20px;
-      gap: 30px;
-    }
-
-    .profile, .news {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      width: 340px;
-      animation: slideup 0.8s ease;
-    }
-
-    @keyframes slideup {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .profile img {
-      width: 100%;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-    }
-
-    table {
-      margin-top: 15px;
-      font-size: 15px;
-    }
-
-    a {
-      color: #ffcc00;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .news hr {
-      border: none;
-      height: 1px;
-      background: #fff;
-      margin: 10px 0;
-    }
-
-    .news strong {
-      display: block;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-
-    .footer {
+      align-items: center;
+      background: white;
+      color: black;
+      font-family: Consolas, monospace, monospace;
       text-align: center;
-      padding: 20px;
-      font-size: 13px;
-      color: #ccc;
+    }
+    h1 {
+      font-size: 6rem;
+      margin: 0;
+    }
+    p {
+      font-size: 1.5rem;
+      margin: 0.5rem 0 1rem 0;
+    }
+    .ascii-art {
+      font-size: 3rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+      user-select: none;
+      margin-bottom: 1rem;
+    }
+    a {
+      color: black;
+      text-decoration: underline;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>soramame72's homepage</h1>
-
-  <div class="container">
-    <div class="profile">
-      <img src="soramame72.jpg" alt="soramame72">
-      <table>
-        <tr><td>soramame72</td></tr>
-        <tr><td><a href="https://www.youtube.com/@soramame72" target="_blank">YouTube</a> starts activities on May 6, 2023</td></tr>
-        <tr><td><a href="https://www.tiktok.com/@soramame72_tiktok" target="_blank">TikTok</a> starts activities on September 2, 2023</td></tr>
-        <tr><td><a href="https://reality.app/profile/20020be4?adj_t=8ogcewh_z9yhix5" target="_blank">REALITY</a> starts active on May 21, 2024</td></tr>
-        <tr><td><a href="https://discord.gg/gr5SBJnXRG" target="_blank">Discord server</a></td></tr>
-        <tr><td><br>Link collection ↓<br><a href="https://soramame72-link.github.io" target="_blank">https://soramame72-link.github.io</a></td></tr>
-      </table>
-    </div>
-
-    <div class="news">
-      <div align="center"><strong>--- NEWS ---</strong></div>
-      <hr>
-      <strong>・bedwars</strong><br>
-      <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v6</a> <span style="color:#ff4444;">New!</span><br>
-      Released on April 17, 2025<br>
-      <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v5.5</a><br>
-      Released on March 14, 2025<br>
-      <hr>
-      <strong>・IWEB</strong><br>
-      <a href="https://soramame72-os.github.io" target="_blank">IWEB1.2</a> <span style="color:#ff4444;">New!</span><br>
-      Released on April 12, 2025<br>
-      <a href="https://soramame72-os.github.io" target="_blank">IWEB1.1</a><br>
-      Released on April 12, 2025<br>
-      <hr>
-      <strong>・Event</strong><br>
-      I got an iPhone 3GS <span style="color:#ff4444;">New!</span><br>The event is on May 5, 2025<br>
-      I found an iPhone 5s<br>The event is on May 3, 2025<br>
-      <hr>
-      <small>It is absolutely prohibited to use or copy photos, texts, and codes on this web page or the soramame72 web page.</small>
-    </div>
-  </div>
-
-  <div class="footer">
-    &copy; 2025 soramame72. All rights reserved.
-  </div>
+  <h1>こんにちは</h1>
+  <p>下のリンクをクリックするとホームページへ入場することができます</p>
+  <div class="ascii-art">（　＾ω＾）</div>
+  <a href="https://soramame72.github.io/soramame72">soramame72's homepage</a>
 </body>
 </html>
