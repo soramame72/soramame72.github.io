@@ -1,136 +1,579 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>soramame72</title>
-  <link rel="icon" href="favicon.PNG" type="image/png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background: url('background.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-      animation: fadein 1.5s ease;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.PNG" type="image/png">
+    <title>soramame72</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    @keyframes fadein {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg, #4a90e2 0%, #1e3c72 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden; /* 横スクロールを防止 */
+        }
 
-    h1 {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 28px;
-      text-shadow: 0 2px 2px #000;
-    }
+        /* iOS背景テクスチャ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 2px, transparent 2px),
+                radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 30px 30px, 20px 20px;
+            pointer-events: none;
+            opacity: 0.3;
+        }
 
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 20px;
-      gap: 30px;
-    }
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+        }
 
-    .profile, .news {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      width: 340px;
-      animation: slideup 0.8s ease;
-    }
+        .main-container {
+            max-width: 1000px;
+            margin: 40px auto 40px; /* 下マージンを追加 */
+            background: linear-gradient(145deg, #f2f2f2, #d9d9d9);
+            border-radius: 25px;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.4),
+                0 2px 8px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.3);
+            width: calc(100% - 40px); /* 横幅を制限 */
+        }
 
-    @keyframes slideup {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+        /* リアルなiOSベゼル効果 */
+        .main-container::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.6);
+            pointer-events: none;
+        }
 
-    .profile img {
-      width: 100%;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-    }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #333;
+            text-shadow: 
+                0 1px 0 rgba(255,255,255,0.8),
+                0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            font-weight: bold;
+            background: linear-gradient(180deg, #4a4a4a, #2a2a2a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    table {
-      margin-top: 15px;
-      font-size: 15px;
-    }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
 
-    a {
-      color: #ffcc00;
-      text-decoration: none;
-    }
+        /* iOS風プロフィールカード */
+        .profile-card {
+            background: linear-gradient(180deg, #ffffff, #e8e8e8);
+            border: 1px solid #b8b8b8;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 
+                0 3px 8px rgba(0,0,0,0.3),
+                0 1px 3px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            position: relative;
+        }
 
-    a:hover {
-      text-decoration: underline;
-    }
+        .profile-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 
+                0 2px 8px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+            margin-bottom: 15px;
+            border: 1px solid #999;
+        }
 
-    .news hr {
-      border: none;
-      height: 1px;
-      background: #fff;
-      margin: 10px 0;
-    }
+        /* iOS風情報パネル */
+        .profile-info {
+            background: linear-gradient(180deg, #ffffff, #f5f5f5);
+            border: 1px solid #c8c8c8;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.1),
+                0 1px 0 rgba(255,255,255,0.8);
+        }
 
-    .news strong {
-      display: block;
-      font-size: 16px;
-      margin-top: 10px;
-    }
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+        }
 
-    .footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 13px;
-      color: #ccc;
-    }
-  </style>
+        .profile-links {
+            list-style: none;
+        }
+
+        .profile-links li {
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .profile-links li:last-child {
+            border-bottom: none;
+        }
+
+        /* iOS風ボタン */
+        .ios-button {
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(180deg, #5a9fd4, #306693);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 0 -1px 1px rgba(0,0,0,0.5);
+            box-shadow: 
+                0 1px 3px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+            border: 1px solid #2a5c87;
+            transition: all 0.1s ease;
+            margin-right: 8px;
+        }
+
+        .ios-button:hover {
+            background: linear-gradient(180deg, #6bb0e5, #3a76a3);
+            box-shadow: 
+                0 1px 2px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .ios-button:active {
+            background: linear-gradient(180deg, #306693, #5a9fd4);
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.3),
+                0 1px 0 rgba(255,255,255,0.3);
+            transform: translateY(1px);
+        }
+
+        .link-collection {
+            background: linear-gradient(180deg, #fff3cd, #ffeaa7);
+            border: 1px solid #d4a574;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.1),
+                0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        /* iOS風ニュースパネル */
+        .news-panel {
+            background: linear-gradient(180deg, #ffffff, #e8e8e8);
+            border: 1px solid #b8b8b8;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 
+                0 3px 8px rgba(0,0,0,0.3),
+                0 1px 3px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .news-header {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+            padding: 10px;
+            background: linear-gradient(180deg, #f8f8f8, #e0e0e0);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .news-section {
+            background: linear-gradient(180deg, #ffffff, #f8f8f8);
+            border: 1px solid #d0d0d0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.1),
+                0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .news-category {
+            font-weight: bold;
+            color: #444;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .news-item {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: linear-gradient(180deg, #fbfbfb, #f0f0f0);
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-shadow: 
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                0 1px 1px rgba(0,0,0,0.1);
+        }
+
+        .news-item a {
+            color: #2e74b5;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .news-item a:hover {
+            color: #1e5a96;
+            text-decoration: underline;
+        }
+
+        /* iOS風NEW!バッジ */
+        .new-badge {
+            background: linear-gradient(180deg, #ff4757, #c44569);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 0 -1px 1px rgba(0,0,0,0.5);
+            box-shadow: 
+                0 1px 3px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+            border: 1px solid #a0334d;
+            display: inline-block;
+            margin-left: 6px;
+            animation: ios-pulse 2s infinite;
+        }
+
+        @keyframes ios-pulse {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+            }
+        }
+
+        .date-info {
+            color: #666;
+            font-size: 11px;
+            margin-top: 3px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+            font-style: italic;
+        }
+
+        /* iOS風区切り線 */
+        .ios-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #c0c0c0, transparent);
+            margin: 15px 0;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        /* iOS風著作権表示 */
+        .copyright-notice {
+            background: linear-gradient(180deg, #ff9500, #e6830e);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            text-shadow: 0 -1px 1px rgba(0,0,0,0.5);
+            box-shadow: 
+                0 2px 5px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+            border: 1px solid #cc7a00;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .main-container {
+                padding: 20px;
+                margin-top: 30px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* iOS風アイコン効果（修正版） */
+        .profile-card, .news-panel {
+            transition: all 0.2s ease;
+            will-change: transform; /* GPU加速を有効化 */
+        }
+
+        .profile-card:hover, .news-panel:hover {
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.35),
+                0 2px 6px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+        }
+
+        /* iOS風テキスト選択 */
+        ::selection {
+            background: rgba(74, 144, 226, 0.3);
+            color: #333;
+        }
+
+        ::-moz-selection {
+            background: rgba(74, 144, 226, 0.3);
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-  <h1>soramame72's homepage</h1>
-
-  <div class="container">
-    <div class="profile">
-      <img src="soramame72.jpg" alt="soramame72">
-      <table>
-        <tr><td>soramame72</td></tr>
-        <tr><td><a href="https://www.youtube.com/@soramame72" target="_blank">YouTube</a> starts activities on May 6, 2023</td></tr>
-        <tr><td><a href="https://www.tiktok.com/@soramame72_tiktok" target="_blank">TikTok</a> starts activities on September 2, 2023</td></tr>
-        <tr><td><a href="https://reality.app/profile/20020be4?adj_t=8ogcewh_z9yhix5" target="_blank">REALITY</a> starts active on May 21, 2024</td></tr>
-        <tr><td><a href="https://discord.gg/gr5SBJnXRG" target="_blank">Discord server</a></td></tr>
-        <tr><td><br>Link collection ↓<br><a href="https://soramame72-link.github.io" target="_blank">https://soramame72-link.github.io</a></td></tr>
-      </table>
+    <div class="status-bar">
+        <span>圏外 📶</span>
+        <span>15:03</span>
+        <span>🔋 22%</span>
     </div>
 
-    <div class="news">
-      <div align="center"><strong>--- NEWS ---</strong></div>
-      <hr>
-      <strong>・bedwars</strong><br>
-      <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v6</a> <span style="color:#ff4444;">New!</span><br>
-      Released on April 17, 2025<br>
-      <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v5.5</a><br>
-      Released on March 14, 2025<br>
-      <hr>
-      <strong>・IWEB</strong><br>
-      <a href="https://soramame72-os.github.io" target="_blank">IWEB1.2</a> <span style="color:#ff4444;">New!</span><br>
-      Released on April 12, 2025<br>
-      <a href="https://soramame72-os.github.io" target="_blank">IWEB1.1</a><br>
-      Released on April 12, 2025<br>
-      <hr>
-      <strong>・Event</strong><br>
-      I got an iPhone 3GS <span style="color:#ff4444;">New!</span><br>The event is on May 5, 2025<br>
-      I found an iPhone 5s<br>The event is on May 3, 2025<br>
-      <hr>
-      <small>It is absolutely prohibited to use or copy photos, texts, and codes on this web page or the soramame72 web page.</small>
+    <div class="main-container">
+        <h1>soramame72's homepage</h1>
+        
+        <div class="container">
+            <div class="profile-card">
+                <img src="soramame72.jpg" alt="soramame72" class="profile-image">
+                
+                <div class="profile-info">
+                    <div class="profile-name">soramame72</div>
+                    
+                    <ul class="profile-links">
+                        <li>
+                            <a href="https://www.youtube.com/@soramame72" target="_blank" class="ios-button">YouTube</a>
+                            starts activities on May 6, 2023
+                        </li>
+                        <li>
+                            <a href="https://www.tiktok.com/@soramame72_tiktok" target="_blank" class="ios-button">TikTok</a>
+                            starts activities on September 2, 2023
+                        </li>
+                        <li>
+                            <a href="https://reality.app/profile/20020be4?adj_t=8ogcewh_z9yhix5" target="_blank" class="ios-button">REALITY</a>
+                            starts active on May 21, 2024
+                        </li>
+                        <li>
+                            <a href="https://discord.gg/gr5SBJnXRG" class="ios-button">Discord server</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="link-collection">
+                        <strong>Link collection ↓</strong><br>
+                        <a href="https://soramame72-link.github.io" target="_blank" class="ios-button">Link Collection</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="news-panel">
+                <div class="news-header">--- NEWS ---</div>
+                
+                <div class="news-section">
+                    <div class="news-category">・bedwars</div>
+                    <div class="news-item">
+                        <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v6</a>
+                        <span class="new-badge">NEW!</span>
+                        <div class="date-info">Released on April 17, 2025</div>
+                    </div>
+                    <div class="news-item">
+                        <a href="https://soramame72-download.github.io/bedwars" target="_blank">bedwars v5.5</a>
+                        <div class="date-info">Released on March 14, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="ios-divider"></div>
+                
+                <div class="news-section">
+                    <div class="news-category">・IWEB</div>
+                    <div class="news-item">
+                        <a href="https://soramame72-os.github.io" target="_blank">IWEB1.2</a>
+                        <span class="new-badge">NEW!</span>
+                        <div class="date-info">Released on April 12, 2025</div>
+                    </div>
+                    <div class="news-item">
+                        <a href="https://soramame72-os.github.io" target="_blank">IWEB1.1</a>
+                        <div class="date-info">Released on April 12, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="ios-divider"></div>
+                
+                <div class="news-section">
+                    <div class="news-category">・Event</div>
+                    <div class="news-item">
+                        I got an iPhone 3GS <span class="new-badge">NEW!</span>
+                        <div class="date-info">The event is on May 5, 2025</div>
+                    </div>
+                    <div class="news-item">
+                        I found an iPhone 5s
+                        <div class="date-info">The event is on May 3, 2025</div>
+                    </div>
+                </div>
+                
+                <div class="copyright-notice">
+                    It is absolutely prohibited to use or copy photos, texts, and codes on this web page or the soramame72 web page.
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="footer">
-    &copy; 2025 soramame72. All rights reserved.
-  </div>
+    <script>
+        // iOS風タッチフィードバック
+        document.querySelectorAll('.ios-button').forEach(button => {
+            button.addEventListener('touchstart', function() {
+                this.style.transform = 'translateY(1px)';
+                this.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.3)';
+            });
+            
+            button.addEventListener('touchend', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)';
+            });
+        });
+
+        // iOS風バウンススクロール
+        let startY;
+        let startTop;
+        
+        document.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].pageY;
+            startTop = window.pageYOffset;
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            const y = e.touches[0].pageY;
+            const scrollTop = startTop - (y - startY);
+            
+            if (scrollTop < 0) {
+                e.preventDefault();
+                document.body.style.transform = `translateY(${Math.abs(scrollTop) * 0.5}px)`;
+            } else if (scrollTop > document.body.scrollHeight - window.innerHeight) {
+                e.preventDefault();
+                const overscroll = scrollTop - (document.body.scrollHeight - window.innerHeight);
+                document.body.style.transform = `translateY(${-overscroll * 0.5}px)`;
+            }
+        });
+
+        document.addEventListener('touchend', function() {
+            document.body.style.transform = 'translateY(0)';
+            document.body.style.transition = 'transform 0.3s ease-out';
+            setTimeout(() => {
+                document.body.style.transition = '';
+            }, 300);
+        });
+
+        // NEW!バッジのタップ効果
+        document.querySelectorAll('.new-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                this.style.animation = 'none';
+                this.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                    this.style.animation = 'ios-pulse 2s infinite';
+                }, 100);
+            });
+        });
+
+        // iOS風パララックス効果（修正版）
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const backgrounds = document.querySelectorAll('.profile-card, .news-panel');
+            
+            backgrounds.forEach((bg, index) => {
+                const speed = (index + 1) * 0.02; // 移動量を大幅に減少
+                const maxMove = 10; // 最大移動距離を制限
+                const moveAmount = Math.min(Math.max(scrolled * speed, -maxMove), maxMove);
+                bg.style.transform = `translateY(${moveAmount}px)`;
+            });
+        });
+
+        // 時刻更新
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ja-JP', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            document.querySelector('.status-bar span:nth-child(2)').textContent = timeString;
+        }
+
+        setInterval(updateTime, 1000);
+    </script>
 </body>
 </html>
