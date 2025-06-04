@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>soramame72 - 標準コンテンツ配信サービス</title>
+<link rel="icon" href="favicon.PNG" type="image/png">
+<style>
+body {
+    font-family: "MS Gothic", "Courier New", monospace;
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff;
+    color: #000000;
+    line-height: 1.4;
+    font-size: 12px;
+}
+
+.header {
+    background-color: #cce7ff;
+    border-bottom: 4px solid #003d7a;
+    padding: 15px 20px;
+    text-align: center;
+    position: relative;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #001f3f;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    font-size: 11px;
+    color: #333333;
+    margin-top: 3px;
+    letter-spacing: 1px;
+}
+
+.nav-bar {
+    background-color: #e0f0ff;
+    border-bottom: 2px solid #999999;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.nav-button {
+    display: inline-block;
+    background-color: #003d7a;
+    color: white;
+    padding: 4px 12px;
+    margin: 0 3px;
+    text-decoration: none;
+    font-size: 11px;
+    border: 1px solid #002952;
+    font-weight: bold;
+}
+
+.nav-button:hover {
+    background-color: #002952;
+}
+
+.main-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 15px;
+    display: flex;
+    gap: 20px;
+}
+
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.content {
+    flex: 1;
+}
+
+.box {
+    background-color: #f5f5f5;
+    border: 2px solid #999999;
+    margin-bottom: 15px;
+    padding: 10px;
+}
+
+.box-title {
+    background-color: #003d7a;
+    color: white;
+    padding: 5px 8px;
+    margin: -10px -10px 10px -10px;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.profile-image {
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    border: 2px solid #cccccc;
+    margin-bottom: 10px;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    background-color: white;
+}
+
+.info-table td {
+    padding: 4px 6px;
+    border: 1px solid #cccccc;
+    vertical-align: top;
+}
+
+.info-table .label {
+    width: 70px;
+    font-weight: bold;
+    color: #003366;
+    background-color: #f0f8ff;
+    text-align: center;
+}
+
+.status-display {
+    background-color: #e8f5e8;
+    border: 2px solid #4CAF50;
+    padding: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: #2e7d2e;
+}
+
+.time-display {
+    background-color: #000000;
+    color: #00ff00;
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 10px;
+    border: 2px solid #333333;
+    letter-spacing: 2px;
+}
+
+.button-panel {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.control-button {
+    background-color: #0066cc;
+    color: white;
+    border: 2px solid #004499;
+    padding: 8px 16px;
+    margin: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.control-button:hover {
+    background-color: #004499;
+}
+
+.control-button:active {
+    background-color: #002266;
+}
+
+.news-item {
+    background-color: white;
+    border: 1px solid #cccccc;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.news-header {
+    background-color: #f0f8ff;
+    padding: 4px 6px;
+    margin: -8px -8px 6px -8px;
+    border-bottom: 1px solid #cccccc;
+    font-size: 10px;
+    color: #666666;
+}
+
+.news-category {
+    background-color: #ff6600;
+    color: white;
+    padding: 2px 6px;
+    font-size: 9px;
+    border-radius: 2px;
+    margin-right: 6px;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.news-category.game { background-color: #ff6600; }
+.news-category.os { background-color: #9933cc; }
+.news-category.event { background-color: #339933; }
+
+.new-indicator {
+    background-color: #ff0000;
+    color: white;
+    font-size: 8px;
+    padding: 2px 4px;
+    margin-left: 5px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+    background-color: white;
+    margin-top: 10px;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #cccccc;
+    padding: 3px 5px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #e6f3ff;
+    font-weight: bold;
+    color: #003366;
+}
+
+.qr-section {
+    text-align: center;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border: 1px solid #cccccc;
+    margin-bottom: 10px;
+}
+
+.qr-placeholder {
+    width: 80px;
+    height: 80px;
+    background-color: #ffffff;
+    border: 2px solid #cccccc;
+    margin: 0 auto 5px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #666666;
+}
+
+.footer {
+    background-color: #f0f8ff;
+    border-top: 2px solid #0066cc;
+    padding: 15px;
+    text-align: center;
+    font-size: 10px;
+    color: #666666;
+    margin-top: 20px;
+}
+
+.copyright-box {
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+    padding: 8px;
+    margin-top: 10px;
+    font-size: 10px;
+    color: #856404;
+    text-align: center;
+}
+
+.link-button {
+    display: block;
+    background-color: #f0f0f0;
+    border: 2px solid #999999;
+    padding: 6px 8px;
+    margin: 2px 0;
+    text-decoration: none;
+    color: #003d7a;
+    font-size: 11px;
+    text-align: center;
+}
+
+.link-button:hover {
+    background-color: #e0e0e0;
+}
+
+.technical-info {
+    font-size: 9px;
+    color: #333333;
+    margin-top: 5px;
+    font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>soramame72 - Standard Content Distribution Service</h1>
+    <div class="subtitle">Content Creator & Developer - Technical Information Portal</div>
+</div>
+
+<div class="nav-bar">
+    <a href="#profile" class="nav-button">Profile</a>
+    <a href="#news" class="nav-button">News</a>
+    <a href="#downloads" class="nav-button">Downloads</a>
+    <a href="#links" class="nav-button">Links</a>
+    <a href="#contact" class="nav-button">Contact</a>
+</div>
+
+        <div class="box">
+            <div class="box-title">プロフィール情報</div>
+            <img src="soramame72.jpg" alt="soramame72" class="profile-image">
+            
+            <table class="info-table">
+                <tr>
+                    <td class="label">ID</td>
+                    <td>soramame72</td>
+                </tr>
+                <tr>
+                    <td class="label">YouTube</td>
+                    <td><a href="https://www.youtube.com/@soramame72" target="_blank">@soramame72</a><br>
+                    <span class="technical-info">開始: 2023-05-06</span></td>
+                </tr>
+                <tr>
+                    <td class="label">TikTok</td>
+                    <td><a href="https://www.tiktok.com/@soramame72_tiktok" target="_blank">@soramame72_tiktok</a><br>
+                    <span class="technical-info">開始: 2023-09-02</span></td>
+                </tr>
+                <tr>
+                    <td class="label">REALITY</td>
+                    <td><a href="https://reality.app/profile/20020be4?adj_t=8ogcewh_z9yhix5" target="_blank">プロフィール</a><br>
+                    <span class="technical-info">開始: 2024-05-21</span></td>
+                </tr>
+                <tr>
+                    <td class="label">Discord</td>
+                    <td><a href="https://discord.gg/gr5SBJnXRG" target="_blank">サーバー参加</a></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="box">
+            <div class="box-title">モバイルアクセス</div>
+            <div class="qr-section">
+                <div class="qr-placeholder">QR CODE</div>
+                <div style="font-size: 9px;">モバイル機器でもご利用いただけます<br>（対応機種のみ）</div>
+            </div>
+        </div>
+
+        <div class="box">
+            <div class="box-title">外部リンク</div>
+            <a href="https://soramame72-link.github.io" target="_blank" class="link-button">
+                📋 統合リンクページ
+            </a>
+            <div class="technical-info">最終更新: 2025-06-04</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="box">
+            <div class="box-title">配信情報・NEWS</div>
+
+            <div class="news-item">
+                <div class="news-header">2025-04-17</div>
+                <span class="news-category game">GAME</span>
+                <strong>bedwars v6 リリース</strong>
+                <span class="new-indicator">NEW</span><br>
+                <a href="https://soramame72-download.github.io/bedwars" target="_blank">📦 ダウンロードページ</a>
+            </div>
+
+            <div class="news-item">
+                <div class="news-header">2025-04-12</div>
+                <span class="news-category os">OS</span>
+                <strong>IWEB1.2 システムアップデート</strong>
+                <span class="new-indicator">NEW</span><br>
+                <a href="https://soramame72-os.github.io" target="_blank">🖥️ 公式サイト</a>
+            </div>
+
+            <div class="news-item">
+                <div class="news-header">2025-05-05</div>
+                <span class="news-category event">EVENT</span>
+                <strong>iPhone 3GS 入手報告</strong>
+                <span class="new-indicator">NEW</span><br>
+            </div>
+
+            <div class="news-item">
+                <div class="news-header">2025-03-1</div>
+                <span class="news-category game">GAME</span>
+                <strong>bedwars v5.5 リリース</strong><br>
+                <a href="https://soramame72-download.github.io/bedwars" target="_blank">📦 ダウンロードページ</a>
+            </div>
+        </div>
+
+        <div class="copyright-box">
+            <strong>⚠️ 重要な注意事項</strong><br>
+            本ウェブサイトまたは関連ページに掲載されている画像、文章、プログラムコード等の無断使用・複製を固く禁止いたします。<br>
+            Copyright © 2023-2025 soramame72. All Rights Reserved.
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <strong>soramame72 - Standard Content Distribution Service</strong><br>
+    Last Updated: 2025-06-04 | System Version: 2.1.0<br>
+    Powered by soramame72
+</div>
+
+</body>
+</html>
