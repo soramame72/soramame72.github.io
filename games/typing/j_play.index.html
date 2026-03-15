@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="Shift_JIS">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語タイピングゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .game-area {
+            height: 350px;
+            border: 2px solid #333;
+            background: #e8e8e8;
+            position: relative;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .word-item {
+            background: white;
+            border: 1px solid #999;
+            padding: 20px 30px;
+            border-radius: 5px;
+            font-size: 36px;
+            white-space: nowrap;
+            font-family: "Times New Roman", serif;
+            position: static;
+        }
+
+        @keyframes moveLeft {
+            from { right: -300px; }
+            to { right: 100%; }
+        }
+
+        .word-item.current {
+            background: #ffffcc;
+            border: 3px solid #ff6600;
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
+        }
+
+        .char {
+            position: relative;
+        }
+
+        .char.typed {
+            background-color: #90EE90;
+            color: #006400;
+        }
+
+        .char.current {
+            background-color: #0066ff;
+            color: white;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #999;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #e0e0e0;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: #e8f4f8;
+            border: 1px solid #0066cc;
+            display: none;
+        }
+
+        .level-select {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #999;
+            background: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .level-btn.active {
+            background: #0066cc;
+            color: white;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .input-methods {
+            background: #e1f5fe;
+            border: 1px solid #81d4fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .input-methods h3 {
+            margin-bottom: 10px;
+            color: #0277bd;
+        }
+
+        .input-methods p {
+            color: #0277bd;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>日本語タイピングゲーム</h1>
+            <p>流れてくる単語を正確に入力しよう！</p>
+        </div>
+
+        <div class="instructions">
+            <h3>遊び方</h3>
+            <ul>
+                <li>スタートボタンを押してゲーム開始</li>
+                <li>流れてくる単語をローマ字で入力</li>
+                <li>青色にハイライトされた文字が次に入力する文字です</li>
+                <li>ESCキーでゲーム終了</li>
+            </ul>
+        </div>
+
+        <div class="input-methods">
+            <h3>対応している入力方法</h3>
+            <p>? しゃ → sha / sya</p>
+            <p>? ちゃ → cha / tya</p>
+            <p>? じゃ → ja / jya / zya</p>
+            <p>? ふ → fu / hu</p>
+            <p>? つ → tu / tsu</p>
+            <p>? っ → xtu / xtsu / ltu / ltsu / 次の文字の繰り返し</p>
+            <p>? ん → n / nn (母音の前など自動判定)</p>
+            <p>? を → wo / o</p>
+        </div>
+
+        <div class="level-select">
+            <button class="level-btn active" data-level="easy">初級</button>
+            <button class="level-btn" data-level="normal">中級</button>
+            <button class="level-btn" data-level="hard">上級</button>
+        </div>
+
+        <div class="game-info">
+            <span>残り時間: <span id="timeLeft">60</span>秒</span>
+            <span>完了単語: <span id="completed">0</span>個</span>
+            <span>得点: <span id="score">0</span>点</span>
+            <span>ミス: <span id="miss">0</span>回</span>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <!-- 文字が流れる場所 -->
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="startBtn">スタート</button>
+            <button class="btn" id="resetBtn" disabled>リセット</button>
+        </div>
+
+        <div class="result" id="result">
+            <h2>結果発表</h2>
+            <div id="finalResult"></div>
+        </div>
+    </div>
+
+    <script>
+        class JapaneseTypingGame {
+            constructor() {
+                this.words = {
+                    easy: [
+                        { japanese: "ねこ", romaji: "neko" },
+                        { japanese: "いぬ", romaji: "inu" },
+                        { japanese: "さくら", romaji: "sakura" },
+                        { japanese: "くるま", romaji: "kuruma" },
+                        { japanese: "ほん", romaji: "hon" },
+                        { japanese: "つくえ", romaji: "tsukue" },
+                        { japanese: "き", romaji: "ki" },
+                        { japanese: "みず", romaji: "mizu" },
+                        { japanese: "ひかり", romaji: "hikari" },
+                        { japanese: "そら", romaji: "sora" },
+                        { japanese: "うみ", romaji: "umi" },
+                        { japanese: "やま", romaji: "yama" },
+                        { japanese: "はな", romaji: "hana" },
+                        { japanese: "とり", romaji: "tori" },
+                        { japanese: "さかな", romaji: "sakana" },
+                        { japanese: "げつ", romaji: "getsu" },
+                        { japanese: "ひ", romaji: "hi" },
+                        { japanese: "ゆき", romaji: "yuki" },
+                        { japanese: "あめ", romaji: "ame" },
+                        { japanese: "かぜ", romaji: "kaze" },
+                        { japanese: "いえ", romaji: "ie" },
+                        { japanese: "がっこう", romaji: "gakkou" },
+                        { japanese: "ともだち", romaji: "tomodachi" },
+                        { japanese: "かぞく", romaji: "kazoku" },
+                        { japanese: "たべもの", romaji: "tabemono" },
+                        { japanese: "のみもの", romaji: "nomimono" },
+                        { japanese: "くだもの", romaji: "kudamono" },
+                        { japanese: "やさい", romaji: "yasai" },
+                        { japanese: "ごはん", romaji: "gohan" },
+                        { japanese: "パン", romaji: "pan" },
+                        { japanese: "しゃしん", romaji: "shashin" },
+                        { japanese: "ちゃわん", romaji: "chawan" },
+                        { japanese: "じゃがいも", romaji: "jagaimo" },
+                        { japanese: "ふね", romaji: "fune" },
+                        { japanese: "つき", romaji: "tsuki" },
+                        { japanese: "あっぷる", romaji: "appuru" },
+                        { japanese: "きんじょ", romaji: "kinjo" },
+                        { japanese: "せんぱい", romaji: "senpai" },
+                        { japanese: "こんにちは", romaji: "konnichiwa" },
+                        { japanese: "を", romaji: "wo" }
+                    ],
+                    normal: [
+                        { japanese: "こんぴゅーたー", romaji: "konpyuutaa" },
+                        { japanese: "きーぼーど", romaji: "kiiboodo" },
+                        { japanese: "まうす", romaji: "mausu" },
+                        { japanese: "いんたーねっと", romaji: "intaanetto" },
+                        { japanese: "うぇぶさいと", romaji: "uebusaito" },
+                        { japanese: "ぷろぐらむ", romaji: "puroguramu" },
+                        { japanese: "あぷりけーしょん", romaji: "apurikeeshon" },
+                        { japanese: "でーたべーす", romaji: "deetabeesu" },
+                        { japanese: "あるごりずむ", romaji: "arugorizumu" },
+                        { japanese: "ねっとわーく", romaji: "nettowaaku" },
+                        { japanese: "せきゅりてぃ", romaji: "sekyuriti" },
+                        { japanese: "てくのろじー", romaji: "tekunorojii" },
+                        { japanese: "いのべーしょん", romaji: "inobeeshon" },
+                        { japanese: "ちょうせん", romaji: "chousen" },
+                        { japanese: "せいちょう", romaji: "seichou" },
+                        { japanese: "はってん", romaji: "hatten" },
+                        { japanese: "みらい", romaji: "mirai" },
+                        { japanese: "ゆめ", romaji: "yume" },
+                        { japanese: "きぼう", romaji: "kibou" },
+                        { japanese: "こうふく", romaji: "koufuku" },
+                        { japanese: "へいわ", romaji: "heiwa" },
+                        { japanese: "じゆう", romaji: "jiyuu" },
+                        { japanese: "しんぽ", romaji: "shinpo" },
+                        { japanese: "はくぶつかん", romaji: "hakubutsukan" },
+                        { japanese: "としょかん", romaji: "toshokan" },
+                        { japanese: "びじゅつかん", romaji: "bijutsukan" },
+                        { japanese: "おんがくかい", romaji: "ongakukai" },
+                        { japanese: "えいがかん", romaji: "eigakan" },
+                        { japanese: "れすとらん", romaji: "resutoran" },
+                        { japanese: "すーぱーまーけっと", romaji: "suupaamaaketto" }
+                    ],
+                    hard: [
+                        { japanese: "こうちょくせん", romaji: "kouchokusen" },
+                        { japanese: "じっしつてき", romaji: "jisshitsuteki" },
+                        { japanese: "だいひょうてき", romaji: "daihyouteki" },
+                        { japanese: "しんりがく", romaji: "shinrigaku" },
+                        { japanese: "てつがく", romaji: "tetsugaku" },
+                        { japanese: "けいざいがく", romaji: "keizaigaku" },
+                        { japanese: "しゃかいがく", romaji: "shakaigaku" },
+                        { japanese: "ぶんがく", romaji: "bungaku" },
+                        { japanese: "れきし", romaji: "rekishi" },
+                        { japanese: "ちり", romaji: "chiri" },
+                        { japanese: "すうがく", romaji: "suugaku" },
+                        { japanese: "ぶつり", romaji: "butsuri" },
+                        { japanese: "かがく", romaji: "kagaku" },
+                        { japanese: "せいぶつ", romaji: "seibutsu" },
+                        { japanese: "いがく", romaji: "igaku" },
+                        { japanese: "こうがく", romaji: "kougaku" },
+                        { japanese: "けんちく", romaji: "kenchiku" },
+                        { japanese: "でざいん", romaji: "dezain" },
+                        { japanese: "あーとわーく", romaji: "aatowaaku" },
+                        { japanese: "くりえいてぃぶ", romaji: "kurieitibu" },
+                        { japanese: "いまじねーしょん", romaji: "imajineeshon" },
+                        { japanese: "いんすぴれーしょん", romaji: "insupireeshon" },
+                        { japanese: "もちべーしょん", romaji: "mochibeeshon" },
+                        { japanese: "こんせんとれーしょん", romaji: "konsentoreeshon" },
+                        { japanese: "こみゅにけーしょん", romaji: "komyunikeeshon" },
+                        { japanese: "いんふぉめーしょん", romaji: "infomeeshon" },
+                        { japanese: "えでゅけーしょん", romaji: "edyukeeshon" },
+                        { japanese: "おーがないぜーしょん", romaji: "ooganaizeeshon" },
+                        { japanese: "あどみにすとれーしょん", romaji: "adominisutre  eshon" },
+                        { japanese: "いんたーなしょなる", romaji: "intaanashonaru" }
+                    ]
+                };
+                
+                // 複数の入力方法を定義
+                this.inputPatterns = {
+                    'sha': ['sha', 'sya'],
+                    'shi': ['shi', 'si'],
+                    'shu': ['shu', 'syu'],
+                    'she': ['she', 'sye'],
+                    'sho': ['sho', 'syo'],
+                    'cha': ['cha', 'tya'],
+                    'chi': ['chi', 'ti'],
+                    'chu': ['chu', 'tyu'],
+                    'che': ['che', 'tye'],
+                    'cho': ['cho', 'tyo'],
+                    'ja': ['ja', 'jya', 'zya'],
+                    'ji': ['ji', 'zi'],
+                    'ju': ['ju', 'jyu', 'zyu'],
+                    'je': ['je', 'jye', 'zye'],
+                    'jo': ['jo', 'jyo', 'zyo'],
+                    'fu': ['fu', 'hu'],
+                    'tsu': ['tsu', 'tu'],
+                    'du': ['du', 'dzu'],
+                    'wo': ['wo', 'o'],
+                    'n': ['n', 'nn'],
+                    'nya': ['nya', 'niya'],
+                    'nyu': ['nyu', 'niyu'],
+                    'nyo': ['nyo', 'niyo'],
+                    // 小さいつの処理
+                    'っ': ['xtu', 'xtsu', 'ltu', 'ltsu', 'ttu', 'kku', 'ssu', 'tte', 'ppe', 'ccu', 'ggu', 'zzu', 'ddu', 'bbu', 'rru', 'mmu', 'nnu', 'hhu', 'ffu', 'wwe', 'yyu', 'vvu']
+                };
+                
+                this.gameTime = { easy: 60, normal: 60, hard: 60 };
+                this.spawnInterval = { easy: 2500, normal: 2000, hard: 1500 };
+                this.wordSpeed = { easy: 10, normal: 8, hard: 6 };
+                this.scoreMultiplier = { easy: 1, normal: 2, hard: 3 };
+                
+                this.currentLevel = 'easy';
+                this.timeLeft = 60;
+                this.completed = 0;
+                this.score = 0;
+                this.miss = 0;
+                this.totalChars = 0;
+                this.correctChars = 0;
+                this.startTime = 0;
+                this.isGameActive = false;
+                this.currentWord = null;
+                this.gameTimer = null;
+                this.wordInterval = null;
+                this.activeWords = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+            
+            initializeElements() {
+                this.gameArea = document.getElementById('gameArea');
+                this.startBtn = document.getElementById('startBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.timeLeftDisplay = document.getElementById('timeLeft');
+                this.completedDisplay = document.getElementById('completed');
+                this.scoreDisplay = document.getElementById('score');
+                this.missDisplay = document.getElementById('miss');
+                this.resultDisplay = document.getElementById('result');
+                this.finalResultDisplay = document.getElementById('finalResult');
+                this.levelButtons = document.querySelectorAll('.level-btn');
+            }
+            
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startGame());
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+                
+                document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+                
+                this.levelButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeLevel(e.target.dataset.level));
+                });
+            }
+            
+            changeLevel(level) {
+                this.currentLevel = level;
+                this.timeLeft = this.gameTime[level];
+                this.timeLeftDisplay.textContent = this.timeLeft;
+                
+                this.levelButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-level="${level}"]`).classList.add('active');
+                
+                this.resetGame();
+            }
+            
+            // ローマ字を多様な入力パターンに対応したものに変換
+            convertToFlexibleRomaji(romaji) {
+                let result = [];
+                let i = 0;
+                
+                while (i < romaji.length) {
+                    let found = false;
+                    
+                    // 4文字のパターンをチェック
+                    if (i <= romaji.length - 4) {
+                        const fourChar = romaji.substr(i, 4);
+                        if (this.inputPatterns[fourChar]) {
+                            result.push(this.inputPatterns[fourChar]);
+                            i += 4;
+                            found = true;
+                        }
+                    }
+                    
+                    // 3文字のパターンをチェック
+                    if (!found && i <= romaji.length - 3) {
+                        const threeChar = romaji.substr(i, 3);
+                        if (this.inputPatterns[threeChar]) {
+                            result.push(this.inputPatterns[threeChar]);
+                            i += 3;
+                            found = true;
+                        }
+                    }
+                    
+                    // 2文字のパターンをチェック
+                    if (!found && i <= romaji.length - 2) {
+                        const twoChar = romaji.substr(i, 2);
+                        if (this.inputPatterns[twoChar]) {
+                            result.push(this.inputPatterns[twoChar]);
+                            i += 2;
+                            found = true;
+                        }
+                    }
+                    
+                    // 1文字のパターンをチェック
+                    if (!found) {
+                        const oneChar = romaji.substr(i, 1);
+                        
+                        // 特殊文字の処理
+                        if (oneChar === 'ー') {
+                            result.push(['-']);
+                            i += 1;
+                            found = true;
+                        } else if (this.inputPatterns[oneChar]) {
+                            // nの特別処理を簡略化
+                            if (oneChar === 'n' && i < romaji.length - 1) {
+                                const nextChar = romaji.substr(i + 1, 1);
+                                if (['a', 'i', 'u', 'e', 'o', 'y'].includes(nextChar)) {
+                                    result.push(['nn', 'n']);
+                                } else {
+                                    result.push(this.inputPatterns[oneChar]);
+                                }
+                            } else {
+                                result.push(this.inputPatterns[oneChar]);
+                            }
+                            i += 1;
+                            found = true;
+                        } else {
+                            // 小さいつの処理
+                            if (oneChar === romaji.substr(i + 1, 1) && i < romaji.length - 1) {
+                                // 次の文字と同じ場合、促音として処理
+                                const patterns = ['xtu', 'xtsu', 'ltu', 'ltsu'];
+                                patterns.push(oneChar + oneChar); // 同じ文字の繰り返し
+                                result.push(patterns);
+                                i += 1;
+                                found = true;
+                            } else {
+                                result.push([oneChar]);
+                                i += 1;
+                            }
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            
+            startGame() {
+                this.isGameActive = true;
+                this.startTime = Date.now();
+                this.startBtn.disabled = true;
+                this.resetBtn.disabled = false;
+                this.resultDisplay.style.display = 'none';
+                
+                this.gameTimer = setInterval(() => {
+                    this.timeLeft--;
+                    this.timeLeftDisplay.textContent = this.timeLeft;
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+                
+                this.spawnWord();
+            }
+            
+            spawnWord() {
+                if (!this.isGameActive || this.currentWord) return;
+                
+                const wordList = this.words[this.currentLevel];
+                const wordData = wordList[Math.floor(Math.random() * wordList.length)];
+                
+                // 前の単語があれば削除
+                const existingWord = this.gameArea.querySelector('.word-item');
+                if (existingWord) {
+                    existingWord.remove();
+                }
+                
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word-item';
+                
+                // 柔軟な入力パターンを生成
+                const flexibleRomaji = this.convertToFlexibleRomaji(wordData.romaji);
+                
+                wordElement.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 5px;">${wordData.japanese}</div>
+                    <div style="font-size: 18px; color: #666;" id="romajiDisplay">${wordData.romaji}</div>
+                `;
+                
+                this.gameArea.appendChild(wordElement);
+                this.currentWord = {
+                    element: wordElement,
+                    japanese: wordData.japanese,
+                    originalRomaji: wordData.romaji,
+                    flexibleRomaji: flexibleRomaji,
+                    currentSegment: 0,
+                    currentPattern: 0,
+                    typedInSegment: 0,
+                    inputBuffer: ''
+                };
+                
+                wordElement.classList.add('current');
+                this.updateDisplay();
+            }
+            
+            updateDisplay() {
+                if (!this.currentWord) return;
+                
+                const romajiDisplay = this.currentWord.element.querySelector('#romajiDisplay');
+                let displayText = '';
+                let charIndex = 0;
+                
+                for (let i = 0; i < this.currentWord.flexibleRomaji.length; i++) {
+                    const segment = this.currentWord.flexibleRomaji[i];
+                    const currentPattern = segment[0]; // 最初のパターンを表示用に使用
+                    
+                    if (i < this.currentWord.currentSegment) {
+                        // 完了したセグメント
+                        for (let j = 0; j < currentPattern.length; j++) {
+                            displayText += `<span class="char typed">${currentPattern[j]}</span>`;
+                        }
+                    } else if (i === this.currentWord.currentSegment) {
+                        // 現在のセグメント
+                        for (let j = 0; j < currentPattern.length; j++) {
+                            if (j < this.currentWord.typedInSegment) {
+                                displayText += `<span class="char typed">${currentPattern[j]}</span>`;
+                            } else if (j === this.currentWord.typedInSegment) {
+                                displayText += `<span class="char current">${currentPattern[j]}</span>`;
+                            } else {
+                                displayText += `<span class="char">${currentPattern[j]}</span>`;
+                            }
+                        }
+                    } else {
+                        // 未完了のセグメント
+                        for (let j = 0; j < currentPattern.length; j++) {
+                            displayText += `<span class="char">${currentPattern[j]}</span>`;
+                        }
+                    }
+                }
+                
+                romajiDisplay.innerHTML = displayText;
+            }
+            
+            handleKeyPress(e) {
+                if (!this.isGameActive) return;
+                
+                if (e.key === 'Escape') {
+                    this.endGame();
+                    return;
+                }
+                
+                if (!this.currentWord) return;
+                
+                const inputChar = e.key;
+                if (inputChar.length !== 1 || !/[a-z\-]/.test(inputChar)) return;
+                
+                this.currentWord.inputBuffer += inputChar;
+                this.totalChars++;
+                
+                if (this.currentWord.currentSegment >= this.currentWord.flexibleRomaji.length) {
+                    return;
+                }
+                
+                const currentSegment = this.currentWord.flexibleRomaji[this.currentWord.currentSegment];
+                let matched = false;
+                let perfectMatch = false;
+                
+                // 現在のセグメントの全パターンをチェック
+                for (let pattern of currentSegment) {
+                    if (pattern === this.currentWord.inputBuffer) {
+                        // パターン完全一致
+                        perfectMatch = true;
+                        matched = true;
+                        break;
+                    } else if (pattern.startsWith(this.currentWord.inputBuffer)) {
+                        // 部分一致
+                        matched = true;
+                    }
+                }
+                
+                if (perfectMatch) {
+                    // パターン完全一致の場合
+                    this.correctChars += this.currentWord.inputBuffer.length;
+                    this.currentWord.currentSegment++;
+                    this.currentWord.inputBuffer = '';
+                    this.currentWord.typedInSegment = 0;
+                    
+                    if (this.currentWord.currentSegment >= this.currentWord.flexibleRomaji.length) {
+                        // 単語完成
+                        this.completed++;
+                        this.score += this.currentWord.originalRomaji.length * this.scoreMultiplier[this.currentLevel];
+                        
+                        this.completedDisplay.textContent = this.completed;
+                        this.scoreDisplay.textContent = this.score;
+                        
+                        this.currentWord.element.remove();
+                        this.currentWord = null;
+                        this.spawnWord();
+                        return;
+                    }
+                } else if (matched) {
+                    // 部分一致、継続入力
+                    this.correctChars++;
+                    this.currentWord.typedInSegment = this.currentWord.inputBuffer.length;
+                } else {
+                    // ミス
+                    this.miss++;
+                    this.missDisplay.textContent = this.miss;
+                    this.currentWord.inputBuffer = '';
+                    this.currentWord.typedInSegment = 0;
+                }
+                
+                this.updateDisplay();
+            }
+            
+            endGame() {
+                this.isGameActive = false;
+                clearInterval(this.gameTimer);
+                clearInterval(this.wordInterval);
+                
+                // 現在の単語を削除
+                if (this.currentWord && this.currentWord.element.parentNode) {
+                    this.currentWord.element.remove();
+                }
+                this.currentWord = null;
+                
+                const accuracy = this.totalChars > 0 ? Math.round((this.correctChars / this.totalChars) * 100) : 100;
+                
+                this.finalResultDisplay.innerHTML = `
+                    <p><strong>お疲れ様でした！</strong></p>
+                    <p>最終得点: ${this.score}点</p>
+                    <p>完了単語: ${this.completed}個</p>
+                    <p>ミス: ${this.miss}回</p>
+                    <p>正打率: ${accuracy}%</p>
+                    <p>レベル: ${this.currentLevel === 'easy' ? '初級' : this.currentLevel === 'normal' ? '中級' : '上級'}</p>
+                `;
+                
+                this.resultDisplay.style.display = 'block';
+                this.startBtn.disabled = false;
+            }
+            
+            resetGame() {
+                this.isGameActive = false;
+                this.timeLeft = this.gameTime[this.currentLevel];
+                this.completed = 0;
+                this.score = 0;
+                this.miss = 0;
+                this.totalChars = 0;
+                this.correctChars = 0;
+                this.startTime = 0;
+                this.currentWord = null;
+                
+                clearInterval(this.gameTimer);
+                clearInterval(this.wordInterval);
+                
+                this.startBtn.disabled = false;
+                this.resetBtn.disabled = true;
+                
+                if (this.currentWord && this.currentWord.element.parentNode) {
+                    this.currentWord.element.remove();
+                }
+                this.currentWord = null;
+                
+                this.timeLeftDisplay.textContent = this.timeLeft;
+                this.completedDisplay.textContent = '0';
+                this.scoreDisplay.textContent = '0';
+                this.missDisplay.textContent = '0';
+                
+                this.resultDisplay.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new JapaneseTypingGame();
+        });
+    </script>
+</body>
+</html>

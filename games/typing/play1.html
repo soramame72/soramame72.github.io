@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="Shift_JIS">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルタイピングゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .game-area {
+            height: 350px;
+            border: 2px solid #333;
+            background: #e8e8e8;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .word-item {
+            position: absolute;
+            right: 0;
+            background: white;
+            border: 1px solid #999;
+            padding: 15px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 20px;
+            white-space: nowrap;
+            animation: moveLeft linear;
+            font-family: monospace;
+        }
+
+        @keyframes moveLeft {
+            from { right: -300px; }
+            to { right: 100%; }
+        }
+
+        .word-item.current {
+            background: #ffffcc;
+            border: 3px solid #ff6600;
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
+        }
+
+        .char {
+            position: relative;
+        }
+
+        .char.typed {
+            background-color: #90EE90;
+            color: #006400;
+        }
+
+        .char.current {
+            background-color: #FFD700;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { background-color: #FFD700; }
+            51%, 100% { background-color: #FFA500; }
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #999;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #e0e0e0;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: #e8f4f8;
+            border: 1px solid #0066cc;
+            display: none;
+        }
+
+        .level-select {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #999;
+            background: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .level-btn.active {
+            background: #0066cc;
+            color: white;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>シンプルタイピングゲーム</h1>
+            <p>流れてくる文字を正確に入力しよう！</p>
+        </div>
+
+        <div class="instructions">
+            <h3>遊び方</h3>
+            <ul>
+                <li>スタートボタンを押してゲーム開始</li>
+                <li>流れてくる文字をキーボードで入力</li>
+                <li>黄色にハイライトされた文字が次に入力する文字です</li>
+                <li>ESCキーでゲーム終了</li>
+            </ul>
+        </div>
+
+        <div class="level-select">
+            <button class="level-btn active" data-level="easy">初級</button>
+            <button class="level-btn" data-level="normal">中級</button>
+            <button class="level-btn" data-level="hard">上級</button>
+        </div>
+
+        <div class="game-info">
+            <span>残り時間: <span id="timeLeft">60</span>秒</span>
+            <span>完了単語: <span id="completed">0</span>個</span>
+            <span>得点: <span id="score">0</span>点</span>
+            <span>ミス: <span id="miss">0</span>回</span>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <!-- 文字が流れる場所 -->
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="startBtn">スタート</button>
+            <button class="btn" id="resetBtn" disabled>リセット</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="wpm">0</div>
+                <div class="stat-label">打/分</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="accuracy">100</div>
+                <div class="stat-label">正打率(%)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="speed">0</div>
+                <div class="stat-label">打/秒</div>
+            </div>
+        </div>
+
+        <div class="result" id="result">
+            <h2>結果発表</h2>
+            <div id="finalResult"></div>
+        </div>
+    </div>
+
+    <script>
+        class SimpleTypingGame {
+            constructor() {
+                this.words = {
+                    easy: [
+                        "cat", "dog", "pen", "car", "sun", "moon", "star", "book", "desk", "tree",
+                        "apple", "house", "water", "light", "music", "happy", "smile", "heart"
+                    ],
+                    normal: [
+                        "computer", "keyboard", "program", "website", "internet", "language", "function",
+                        "variable", "database", "security", "algorithm", "framework", "developer"
+                    ],
+                    hard: [
+                        "programming", "development", "architecture", "implementation", "documentation",
+                        "optimization", "performance", "compatibility", "functionality", "methodology"
+                    ]
+                };
+                
+                this.gameTime = { easy: 60, normal: 60, hard: 60 };
+                this.spawnInterval = { easy: 2500, normal: 2000, hard: 1500 };
+                this.wordSpeed = { easy: 10, normal: 8, hard: 6 };
+                this.scoreMultiplier = { easy: 1, normal: 2, hard: 3 };
+                
+                this.currentLevel = 'easy';
+                this.timeLeft = 60;
+                this.completed = 0;
+                this.score = 0;
+                this.miss = 0;
+                this.totalChars = 0;
+                this.correctChars = 0;
+                this.startTime = 0;
+                this.isGameActive = false;
+                this.currentWord = null;
+                this.gameTimer = null;
+                this.wordInterval = null;
+                this.activeWords = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+            
+            initializeElements() {
+                this.gameArea = document.getElementById('gameArea');
+                this.startBtn = document.getElementById('startBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.timeLeftDisplay = document.getElementById('timeLeft');
+                this.completedDisplay = document.getElementById('completed');
+                this.scoreDisplay = document.getElementById('score');
+                this.missDisplay = document.getElementById('miss');
+                this.wpmDisplay = document.getElementById('wpm');
+                this.accuracyDisplay = document.getElementById('accuracy');
+                this.speedDisplay = document.getElementById('speed');
+                this.resultDisplay = document.getElementById('result');
+                this.finalResultDisplay = document.getElementById('finalResult');
+                this.levelButtons = document.querySelectorAll('.level-btn');
+            }
+            
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startGame());
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+                
+                document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+                
+                this.levelButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeLevel(e.target.dataset.level));
+                });
+            }
+            
+            changeLevel(level) {
+                this.currentLevel = level;
+                this.timeLeft = this.gameTime[level];
+                this.timeLeftDisplay.textContent = this.timeLeft;
+                
+                this.levelButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-level="${level}"]`).classList.add('active');
+                
+                this.resetGame();
+            }
+            
+            startGame() {
+                this.isGameActive = true;
+                this.startTime = Date.now();
+                this.startBtn.disabled = true;
+                this.resetBtn.disabled = false;
+                this.resultDisplay.style.display = 'none';
+                
+                this.gameTimer = setInterval(() => {
+                    this.timeLeft--;
+                    this.timeLeftDisplay.textContent = this.timeLeft;
+                    this.updateStats();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+                
+                this.wordInterval = setInterval(() => {
+                    this.spawnWord();
+                }, this.spawnInterval[this.currentLevel]);
+                
+                this.spawnWord();
+            }
+            
+            spawnWord() {
+                if (!this.isGameActive) return;
+                
+                const wordList = this.words[this.currentLevel];
+                const word = wordList[Math.floor(Math.random() * wordList.length)];
+                
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word-item';
+                wordElement.style.top = Math.random() * 280 + 'px';
+                wordElement.style.animationDuration = this.wordSpeed[this.currentLevel] + 's';
+                wordElement.dataset.text = word;
+                
+                // 文字を個別にspan要素で包む
+                const chars = word.split('');
+                wordElement.innerHTML = chars.map((char, index) => 
+                    `<span class="char" data-index="${index}">${char}</span>`
+                ).join('');
+                
+                this.gameArea.appendChild(wordElement);
+                this.activeWords.push({
+                    element: wordElement,
+                    text: word,
+                    typedIndex: 0
+                });
+                
+                if (!this.currentWord) {
+                    this.setCurrentWord(this.activeWords[0]);
+                }
+                
+                setTimeout(() => {
+                    if (wordElement.parentNode) {
+                        wordElement.remove();
+                        this.activeWords = this.activeWords.filter(w => w.element !== wordElement);
+                        if (this.currentWord && this.currentWord.element === wordElement) {
+                            this.miss++;
+                            this.missDisplay.textContent = this.miss;
+                            this.setNextWord();
+                        }
+                    }
+                }, this.wordSpeed[this.currentLevel] * 1000);
+            }
+            
+            setCurrentWord(word) {
+                if (this.currentWord) {
+                    this.currentWord.element.classList.remove('current');
+                    const prevChars = this.currentWord.element.querySelectorAll('.char');
+                    prevChars.forEach(char => char.classList.remove('current'));
+                }
+                
+                this.currentWord = word;
+                
+                if (word) {
+                    word.element.classList.add('current');
+                    word.typedIndex = 0;
+                    this.updateCurrentCharHighlight();
+                }
+            }
+            
+            updateCurrentCharHighlight() {
+                if (!this.currentWord) return;
+                
+                const chars = this.currentWord.element.querySelectorAll('.char');
+                chars.forEach((char, index) => {
+                    char.classList.remove('current');
+                    if (index < this.currentWord.typedIndex) {
+                        char.classList.add('typed');
+                    } else if (index === this.currentWord.typedIndex) {
+                        char.classList.add('current');
+                    }
+                });
+            }
+            
+            setNextWord() {
+                const nextIndex = this.activeWords.findIndex(w => w !== this.currentWord && w.typedIndex === 0);
+                if (nextIndex !== -1) {
+                    this.setCurrentWord(this.activeWords[nextIndex]);
+                } else {
+                    this.currentWord = null;
+                }
+            }
+            
+            handleKeyPress(e) {
+                if (!this.isGameActive) return;
+                
+                if (e.key === 'Escape') {
+                    this.endGame();
+                    return;
+                }
+                
+                if (!this.currentWord) return;
+                
+                const targetChar = this.currentWord.text[this.currentWord.typedIndex];
+                const inputChar = e.key;
+                
+                this.totalChars++;
+                
+                if (inputChar === targetChar) {
+                    // 正解
+                    this.correctChars++;
+                    this.currentWord.typedIndex++;
+                    
+                    if (this.currentWord.typedIndex >= this.currentWord.text.length) {
+                        // 単語完成
+                        this.completed++;
+                        this.score += this.currentWord.text.length * this.scoreMultiplier[this.currentLevel];
+                        
+                        this.completedDisplay.textContent = this.completed;
+                        this.scoreDisplay.textContent = this.score;
+                        
+                        this.currentWord.element.remove();
+                        this.activeWords = this.activeWords.filter(w => w !== this.currentWord);
+                        this.setNextWord();
+                    } else {
+                        this.updateCurrentCharHighlight();
+                    }
+                } else {
+                    // ミス
+                    this.miss++;
+                    this.missDisplay.textContent = this.miss;
+                }
+                
+                this.updateStats();
+            }
+            
+            updateStats() {
+                if (this.startTime === 0) return;
+                
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                const wpm = elapsed > 0 ? Math.round((this.correctChars / 5) / (elapsed / 60)) : 0;
+                const accuracy = this.totalChars > 0 ? Math.round((this.correctChars / this.totalChars) * 100) : 100;
+                const speed = elapsed > 0 ? Math.round(this.correctChars / elapsed) : 0;
+                
+                this.wpmDisplay.textContent = wpm;
+                this.accuracyDisplay.textContent = accuracy;
+                this.speedDisplay.textContent = speed;
+            }
+            
+            endGame() {
+                this.isGameActive = false;
+                clearInterval(this.gameTimer);
+                clearInterval(this.wordInterval);
+                
+                // 残った文字を削除
+                this.activeWords.forEach(word => {
+                    if (word.element.parentNode) {
+                        word.element.remove();
+                    }
+                });
+                this.activeWords = [];
+                this.currentWord = null;
+                
+                this.finalResultDisplay.innerHTML = `
+                    <p><strong>お疲れ様でした！</strong></p>
+                    <p>最終得点: ${this.score}点</p>
+                    <p>完了単語: ${this.completed}個</p>
+                    <p>ミス: ${this.miss}回</p>
+                    <p>正打率: ${this.accuracyDisplay.textContent}%</p>
+                    <p>平均打/分: ${this.wpmDisplay.textContent}</p>
+                    <p>レベル: ${this.currentLevel === 'easy' ? '初級' : this.currentLevel === 'normal' ? '中級' : '上級'}</p>
+                `;
+                
+                this.resultDisplay.style.display = 'block';
+                this.startBtn.disabled = false;
+            }
+            
+            resetGame() {
+                this.isGameActive = false;
+                this.timeLeft = this.gameTime[this.currentLevel];
+                this.completed = 0;
+                this.score = 0;
+                this.miss = 0;
+                this.totalChars = 0;
+                this.correctChars = 0;
+                this.startTime = 0;
+                this.currentWord = null;
+                
+                clearInterval(this.gameTimer);
+                clearInterval(this.wordInterval);
+                
+                this.startBtn.disabled = false;
+                this.resetBtn.disabled = true;
+                
+                this.activeWords.forEach(word => {
+                    if (word.element.parentNode) {
+                        word.element.remove();
+                    }
+                });
+                this.activeWords = [];
+                
+                this.timeLeftDisplay.textContent = this.timeLeft;
+                this.completedDisplay.textContent = '0';
+                this.scoreDisplay.textContent = '0';
+                this.missDisplay.textContent = '0';
+                this.wpmDisplay.textContent = '0';
+                this.accuracyDisplay.textContent = '100';
+                this.speedDisplay.textContent = '0';
+                
+                this.resultDisplay.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleTypingGame();
+        });
+    </script>
+</body>
+</html>
